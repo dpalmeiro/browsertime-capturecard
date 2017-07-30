@@ -3,7 +3,12 @@ node_js:
 - '6'
 - '7'
 env:
-- CXX=g++-4.8
+  global:
+  - CXX=g++-4.8
+  matrix:
+  - BROWSERTIME_TEST_BROWSER=chrome
+  - BROWSERTIME_TEST_BROWSER=firefox
+
 sudo: required
 dist: trusty
 cache:
