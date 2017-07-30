@@ -4,7 +4,7 @@ node_js:
 - '7'
 env:
 - CXX=g++-4.8
-sudo: required
+sudo: false
 dist: trusty
 cache:
   apt: true
