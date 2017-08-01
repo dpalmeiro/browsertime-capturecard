@@ -17,9 +17,11 @@ jobs:
   - stage: browser tests
     script: npm run test:browser
     env:
-      matrix:
-      - BROWSERTIME_TEST_BROWSER=chrome
-      - BROWSERTIME_TEST_BROWSER=firefox
+    - BROWSERTIME_TEST_BROWSER=chrome
+  - stage: browser tests
+    script: npm run test:browser
+    env:
+    - BROWSERTIME_TEST_BROWSER=firefox
   - stage: cli tests
     script:
     - node ./bin/browsertime.js -b firefox -n 2 http://www.browsertime.net --preTask test/prepostscripts/preSample.js
