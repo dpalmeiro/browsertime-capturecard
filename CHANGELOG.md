@@ -1,6 +1,11 @@
 # Browsertime changelog
+
+## UNRELEASED
+### Added
+* You can now change pageLoadStrategy by setting --pageLoadStrategy none. If you do that, you can change when you want to end your tests. Use it with --pageCompleteCheck. 
+
 ## version 2.5.0 2018-04-07
-## Fixed
+### Fixed
 * We rollbacked the HAR exporter to the one that works in FF 54 and will wait on FF 61 until we update. That means that the 
 2.x branch and releases will stay locked to FF54 in the Docker file while we are working in Browsertime 3.0. The current way of 
 using the new HAR exporter adds about 1 second overhead on our test pages on dasgboard.sitespeed.io.
