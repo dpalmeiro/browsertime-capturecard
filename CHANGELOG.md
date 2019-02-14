@@ -1,49 +1,118 @@
 # Browsertime changelog
 
-## UNRELEASED
+## 4.4.1 - 2019-02-13
 ### Fixed
-* Shorter paths for using hash in URLs.
-* Make sure data dir use a fallback URL
+* Print correct timestamp on the video [#770](https://github.com/sitespeedio/browsertime/pull/770) Thank you [ponyo877](https://github.com/ponyo877) for the fix!
+
+## 4.4.0 - 2019-02-12
+### Added
+* There are two new cache clear commands: cache.clearKeepCookies() and cache.clear() (only working on Desktop) [#769](https://github.com/sitespeedio/browsertime/pull/769).
+
+### Fixed
+* Updated RUM Speed Index to include upstream fix [#766](https://github.com/sitespeedio/browsertime/pull/766).
+* Make sure the body of the page is shown when setting the fullscreen to orange (when recording the video) [#767](https://github.com/sitespeedio/browsertime/pull/767) 
+* Testing redirect URLs was broken since 8.0. If you test a URL, use that URL and if you click on a link, usethe URL from the browser [#768](https://github.com/sitespeedio/browsertime/pull/768).
+
+## 4.3.0 2019-02-10
+### Added
+* Add text by CSS selector (new command) addText.bySelector(text, selector) [#764](https://github.com/sitespeedio/browsertime/pull/764),
+
+### Fixed
+* click.byJs and click.byJsAndWait now uses JavaScript in backend instead of Selenium = will work on hidden links [#765](https://github.com/sitespeedio/browsertime/pull/765).
+
+## 4.2.6 2019-02-08
+### Fixed
+* Command set value by id was broken, it used to set the value to the id [#761](https://github.com/sitespeedio/browsertime/pull/761). 
+* I've missed that for some URLs (as in this [login](https://github.com/sitespeedio/sitespeed.io/issues/2290#issuecomment-461601990) you could have an alias for an URL but the URL was actually slightly different. For example, you login to a site and the login step redirect to a URL and for that URL one value of a GET parameter differs. So with this fix we lock the alias tyo one specific URL. If your URL change and you use an alias, the first variation of the URL will be used [#763](https://github.com/sitespeedio/browsertime/pull/763).
+
+## 4.2.5 - 2019-02-06
+### Fixed
+* Inserting metrics into the HAR file calculated the wrong page number if you tested multiple pages [#760](https://github.com/sitespeedio/browsertime/pull/760).
+
+## 4.2.4 - 2019-02-04
+### Fixed
+* Commnad set.innerHtml was broken and click by xpath could not handle "-signs [#759](https://github.com/sitespeedio/browsertime/pull/759).
+
+## 4.2.3 - 2019-02-04
+### Fixed
+* Rollbacked the the tmp dirs for Visual Metrics [#758](https://github.com/sitespeedio/browsertime/pull/758).
+
+## 4.2.2 - 2019-02-04
+### Fixed
+* The HAR file had wrong visual metrics as reported in [#754](https://github.com/sitespeedio/browsertime/issues/754). Fixed in [#756](https://github.com/sitespeedio/browsertime/pull/756).
+
+* Fixed borders when running Visual Metrics to try to avoid small orange in the first frame for Chrome [#755](https://github.com/sitespeedio/browsertime/issues/755) fixed in [#757](https://github.com/sitespeedio/browsertime/pull/757).
+
+## 4.2.1 - 2019-02-03
+### Fixed
+* Ooops, click.byClassName and click.byClassNameAndWait broke in 4.2.0 [#753](https://github.com/sitespeedio/browsertime/pull/753).
+
+## 4.2.0 - 2019-02-03
+### Fixed
+* Fixed so that ```js.run()``` returns whatever it gets back so you can script and get whatever you need from your page [#749](https://github.com/sitespeedio/browsertime/pull/749).
 
 ### Added
-* Added support for --spa configuration that will: Automatically use hash/params in file names and wait X seconds for no request in resource timing api as pageCompleteCheck [#700](https://github.com/sitespeedio/browsertime/pull/700) [#698](https://github.com/sitespeedio/browsertime/pull/698).
+* New help command **set** to set innerHtml, innerText and value of element. [#750](https://github.com/sitespeedio/browsertime/pull/750). 
+* Added click.bySelector and rewrote most of click methods to use plain JavaScript instead of Selenium (so it will work on hidden elements) [#751](https://github.com/sitespeedio/browsertime/pull/751).
 
-## 4.0.0-alpha.5 - 2019-01-01
+##  4.1.0 - 2019-01-31
+### Added
+* Upgraded the Docker container to use Chrome 72 and Firefox 65
+* Upgraded to Chromedriveer 2.45.0 [#743](https://github.com/sitespeedio/browsertime/pull/743).
+* Upgraded to Geckkodriver 0.24.0 [#742](https://github.com/sitespeedio/browsertime/pull/742).
+* Disable Firefox updates during testing [#741](https://github.com/sitespeedio/browsertime/pull/741).
+* New command: ```js.runAndWait('')``` that makes it possible to run your own JavaScript, click a link and wait on page navigation [#747](https://github.com/sitespeedio/browsertime/pull/747).
+
+## 4.0.5 - 2019-01-28
 ### Fixed
-* Create data dir before we try to store extra JSON files [#699](https://github.com/sitespeedio/browsertime/pull/699).
+* Bugfix: In 4.0.3 upgrade of Visual Metrics removed a couple fixes that should be there [#740](https://github.com/sitespeedio/browsertime/pull/740). 
 
-* Use latest Chrome-HAR 0.8.0
-
-## 4.0.0-alpha.4 - 2018-12-30
+## 4.0.4 - 2019-01-27
 ### Fixed
-* Another go trying to disable the Firefox updater [#696](https://github.com/sitespeedio/browsertime/pull/696).
+* Bugfix: The font in the video was to big when testing on mobile/emulated mobile in Chrome [#738](https://github.com/sitespeedio/browsertime/pull/738).
+
+## 4.0.3 - 2019-01-24
+### Fixed
+* Bugfix: Calculating Visual Complete 85/95/99 was broken IF the complete process went backward (first hitting 85% and then going down to < than 85%). We used
+to always take the first metric over 85% and then stick to it. Now we choose the last time it breaks the 85/95/99% metric [#732](https://github.com/sitespeedio/browsertime/pull/732).
+
+* We updated the Visual Metrics lib to use the latest upstream version. We haven't updated for a while and we had issues where [the progress was calculated wrong](https://github.com/sitespeedio/sitespeed.io/issues/2259#issuecomment-456878707) [#730](https://github.com/sitespeedio/browsertime/pull/730).
+
+
+## 4.0.2 - 2019-01-22
+### Fixed
+* Clearing browser trace log (Chrome only) happend before we started the video instead of after the video [#727](https://github.com/sitespeedio/browsertime/pull/727).
+
+## 4.0.1 - 2019-01-21
+### Fixed
+* Doing a script navigation before measuring one URL broke Visual Metrics, fixed in [#726](https://github.com/sitespeedio/browsertime/pull/726).
+
+## 4.0.0 - 2019-01-21
+
+### Fixed
+* Firefox proxy port not being set properly. Thank you [dpalmeiro](https://github.com/dpalmeiro) for the fix and PR
+[#702](https://github.com/sitespeedio/browsertime/pull/702).
 * Disable dev-shm by default for Chrome [#697](https://github.com/sitespeedio/browsertime/pull/697), thank you [Vitalii Tverdokhlib](https://github.com/vitaliytv) for the PR. Docs will be updated when we release next stable.
-
-## 4.0.0-alpha.3 - 2018-12-21
-### Fixed
-* Metrics wasn't insterted into right page in the HAR [#695](https://github.com/sitespeedio/browsertime/pull/695).
-
-## 4.0.0-alpha.2 - 2018-12-20
-
-### Changed
-* All data files (videos/screenshots etc) follows the pattern of sitespeed.io and are stored in a folder strucure from the page URL[#694](https://github.com/sitespeedio/browsertime/pull/694). The files are referenced in the browsertime.json.
-
-## 4.0.0-alpha.1 - 2018-12-20
-
-### Fixed
 * Fixed broken boolean preference for Firefox, thank you [@dpalmeiro)](https://github.com/dpalmeiro) for the fix [#683](https://github.com/sitespeedio/browsertime/pull/683).
 
+
 ### Added
+* Added support for ```--spa``` configuration that will: Automatically use hash/params in file names and wait X seconds for no request in resource timing api as pageCompleteCheck [#700](https://github.com/sitespeedio/browsertime/pull/700) [#698](https://github.com/sitespeedio/browsertime/pull/698).
 * Support for coming timeToContentfulPaint in Firefox (Nigthly at the moment) [#675](https://github.com/sitespeedio/browsertime/pull/675).
-* Upgraded to Chrome-HAR 0.7.1.
+* Upgraded to Chrome-HAR 0.9.1.
 * Updated Chrome to 71 and Firefox 64 in the Docker container.
 * Updated to Chromedriver 2.44.
 * Support for navigating by script. More docs on the way [#666](https://github.com/sitespeedio/browsertime/pull/666).
-* Support for testing multiple pages [#685](https://github.com/sitespeedio/browsertime/pull/685) with navigationScript. [Read the documentation](https://github.com/sitespeedio/browsertime/#script-navigation-in-40-alpa1-or-later).
+* Support for testing multiple pages [#685](https://github.com/sitespeedio/browsertime/pull/685) with using a navigation script. [Read the documentation](https://github.com/sitespeedio/browsertime#navigate-in-a-script-in-40-beta-or-later).
 * Upgraded to newer version of installers of Chromedriver and Geckodriver: less dependencies and the ability to skip installing drivers [#681](https://github.com/sitespeedio/browsertime/pull/681).
 * It's now easier if you want to run stable Chrome on Android. Just add --android (and make sure you started ADB) instead of setting application name and disable xvfb [#688](https://github.com/sitespeedio/browsertime/pull/688).
+* New switch command to switch to other frames/windows [#721](https://github.com/sitespeedio/browsertime/pull/721) [#723](https://github.com/sitespeedio/browsertime/pull/723).
+* Added --videoParams.debug to get a video of a full iteration (all pre/post and script/URLs) [#722](https://github.com/sitespeedio/browsertime/pull/722).
+* Get the Fully Loaded metric from the HAR instead of the Resource Timing API [#720](https://github.com/sitespeedio/browsertime/pull/720).
 
 ### Changed
+* All data files (videos/screenshots etc) follows the pattern of sitespeed.io and are stored in a folder strucure from the page URL[#694](https://github.com/sitespeedio/browsertime/pull/694). The files are referenced in the browsertime.json. If you just want to test one URL at each time, you can keep the old structure with  ```--useSameDir```.
+
 Read about [what has changed in 4.0](https://github.com/sitespeedio/browsertime#upgrade-from-3x-to-40).
 
 * New default trace categories for chrome.timeline: ```-*,devtools.timeline -> -, devtools.timeline, disabled-by-default-devtools.timeline, disabled-by-default-devtools.timeline.stack``` [#677](https://github.com/sitespeedio/browsertime/pull/677) and [#679](https://github.com/sitespeedio/browsertime/pull/679).
@@ -63,7 +132,7 @@ And the new one returns a array, where each tested page is an result in that arr
     "browsertime": {
         "version": "3.0.0"
     }, ...
-}}]
+}]
 ```     
 That means JSON consumers needs to change the code, even if you only test one page. 
 

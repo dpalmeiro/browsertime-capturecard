@@ -48,7 +48,7 @@ The result of the run is a JSON file with all the JavaScript metrics collected, 
 
 Use our Docker image (with Chrome, Firefox, XVFB and the dependencies needed to record a video):
 <pre>
-$ docker run --shm-size=1g --rm -v "$(pwd)":/browsertime sitespeedio/browsertime https://www.sitespeed.io/
+$ docker run --rm -v "$(pwd)":/browsertime sitespeedio/browsertime https://www.sitespeed.io/
 </pre>
 
 Or using node:
@@ -84,7 +84,7 @@ You can build and test changes using Docker locally.
 
 <pre>
 $ docker build -t sitespeedio/browsertime .
-$ docker run --shm-size=1g --rm -v "$(pwd)":/browsertime sitespeedio/browsertime -n 1 https://www.sitespeed.io/
+$ docker run --rm -v "$(pwd)":/browsertime sitespeedio/browsertime -n 1 https://www.sitespeed.io/
 </pre>
 
 ## Connectivity
@@ -121,13 +121,13 @@ tc qdisc add dev docker4 parent 1:12 netem delay 200ms
 Then when you run your container you add the network with <code>--network cable</code>. You should also tell Browsertime that you set the connectivity external from BT. A full example running running with cable:
 
 ~~~bash
-$ docker run --shm-size=1g --network=cable --rm sitespeedio/browsertime -c cable --connectivity.engine external https://www.sitespeed.io/
+$ docker run --network=cable --rm sitespeedio/browsertime -c cable --connectivity.engine external https://www.sitespeed.io/
 ~~~
 
 And using the 3g network:
 
 ~~~bash
-$ docker run --shm-size=1g --network=3g --rm sitespeedio/browsertime -c 3g --connectivity.engine external https://www.sitespeed.io/
+$ docker run --network=3g --rm sitespeedio/browsertime -c 3g --connectivity.engine external https://www.sitespeed.io/
 ~~~
 
 And if you want to remove the networks:
@@ -171,108 +171,19 @@ There are a couple of breaking changes introduce in 4.0.
       }, ...
   }}]
   ``` 
-2. New naming of result files. Before files was named by iteration: 1-video.mp4. In the latest version they are also named by page number: 1-1-video.mp4 (pageNumber-iteration-type.filetype).   
-3. No more pre/post script! With 4.0 you can run your pre/post script by just give the order to browsertime:  ```browsertime preScript.js https://www.sitespeed.io/ postScripts.js```
-4. New layout of Selenium scripting. We simplified the layout of the script. The new version will be able to do the exact same thing as older versions but with a simpler layout:
+2. New naming of result files. Before files was named by iteration: 1-video.mp4. In the latest version all extra files are stored in a folder structure and referenced in the JSON, starting with /pages/ (following the same pattern as sitespeed.io). If you just want to test one URL at each time, you can keep the old structure with  ```--useSameDir```.
+3. New layout of Selenium scripting. We simplified the layout of the script. The new version will be able to do the exact same thing as older versions but with a simpler layout:
 ~~~javascript
-  module.exports = async function(context) {
+  module.exports = async function(context, commands) {
   // code
   }
 ~~~
+4. Pre/post scripts follow the new format as of the script in the third point.
 
-## Script navigation [in 4.0-alpa1 or later]
+## Navigate in a script [in 4.0 or later]
 If you need a more complicated test scenario, you can define your own (Selenium)test script that will do the testing. Use your own test script when you want to test your page as a logged in user, the login page or if you want to add things to your cart.
 
-You run your navigation script by loading the script instead of giving an URL. 
-
-The context object:
-* *url* - The URL that you want are under test.
-* *options* - All the options sent from the CLI to Browsertime.
-* *log* - an instance to the log system so you can log from your navigation script.
-* *index* - the index of the runs, so you can keep track of which run that is running.
-* *storageManager* - The Browsertime storage manager that can help you get read/store files to disk.
-* *webdriver* -  The Selenium [WebDriver public API object](https://seleniumhq.github.io/selenium/docs/api/javascript/module/selenium-webdriver/index.html).
-* *driver* - The [instantiated version of the WebDriver](https://seleniumhq.github.io/selenium/docs/api/javascript/module/selenium-webdriver/index_exports_WebDriver.html) driving the current version of the browser.
-* *h* - a helper object for navigation and measuring. See more below.
-
-The helper object got three methods that you can use:
-* *navigate(URL)* - Use this if you want to use the exact way as Browsertime navigates to a new URL (same settings with pageCompleteCheck etc). But that URL will not be measured automatically.
-* *measure(URL)* - Start measuring and navigate to a new page in one go and measure.
-* *startMeasure(URL)* - Use this when you want to start to measure a page. This will start the video and prepare everything to collect metrics.
-* *collect()* - Collect metrics for a page.
-
-The really simple version looks like this:
-
-~~~javascript
-module.exports = async function(context) {
-  context.log.info('Running script navigation');
-  return context.h.measure('https://www.sitespeed.io/');
-};
-~~~
-
-Testing a page after you have logged in:
-
-~~~javascript
-module.exports = async function(context) {
-    await context.h.navigate(
-    'https://en.wikipedia.org/w/index.php?title=Special:UserLogin&returnto=Main+Page');
-    // we fetch the selenium webdriver from context
-    const webdriver = context.webdriver;
-    const driver = context.driver;
-    // and get hold of some goodies we want to use
-    const until = webdriver.until;
-    const By = webdriver.By;
-    // before you start, make your username and password
-    const userName = 'USERNAME';
-    const password = 'PASSWORD';
-    driver.findElement(By.id('wpName1')).sendKeys(userName);
-    driver.findElement(By.id('wpPassword1')).sendKeys(password);
-    const loginButton = driver.findElement(webdriver.By.id('wpLoginAttempt'));
-    loginButton.click();
-    // we wait for something on the page that verifies that we are logged in
-    await driver.wait(until.elementLocated(By.id('pt-userpage')), 6000);
-    // You are now logged in, navigate to the page that we want to measure
-    return context.h.measure(context.url);
-};
-~~~
-
-And a example measuring the actual log in step:
-
-~~~javascript
-module.exports = async function(context) {
-  await context.h.navigate(
-      'https://en.wikipedia.org/w/index.php?title=Special:UserLogin&returnto=Main+Page');
-  // we fetch the selenium webdriver from context
-  const webdriver = context.webdriver;
-  const driver = context.driver;
-  // and get hold of some goodies we want to use
-  const until = webdriver.until;
-  const By = webdriver.By;
-  // before you start, make your username and password
-  const userName = 'USERNAME';
-  const password = 'PASSWORD';
-  driver.findElement(By.id('wpName1')).sendKeys(userName);
-  driver.findElement(By.id('wpPassword1')).sendKeys(password);
-  const loginButton = driver.findElement(webdriver.By.id('wpLoginAttempt'));
-  // Before we click on the login button, start the measurement
-  await context.h.startMeasure('https://en.wikipedia.org/w/index.php?title=Special:UserLogin&returnto=Main+Page');
-  // Login the user
-  loginButton.click();
-  // we wait for something on the page that verifies that we are logged in
-  await driver.wait(until.elementLocated(By.id('pt-userpage')), 6000);
-  // Make sure to remember to collect the metrics
-  await context.h.stopMeasure();
-};
-~~~
-
-And test multiple pages:
-~~~javascript
-module.exports = async function(context) {
-  await context.h.measure('https://www.sitespeed.io');
-  await context.h.measure('https://www.sitespeed.io/examples/');
-  return context.h.measure('https://www.sitespeed.io/documentation/');
-};
-~~~
+We have a full section in the documentation about [scripting](https://www.sitespeed.io/documentation/sitespeed.io/scripting/).
 
 ## Test on your mobile device
 Browsertime supports Chrome on Android: Collecting SpeedIndex, HAR and video! 
@@ -293,7 +204,7 @@ If you are on Linux (we have tested Ubuntu 18) you can use our Docker container 
 If you use Docker you will automatically get support for video and SpeedIndex. You can get that without Docker but then need to [install VisualMetrics dependencies](https://github.com/sitespeedio/docker-visualmetrics-deps/blob/master/Dockerfile) yourself.
 
 <pre>
-$ docker run --privileged -v /dev/bus/usb:/dev/bus/usb -e START_ADB_SERVER=true --shm-size=1g --rm -v "$(pwd)":/browsertime-results sitespeedio/browsertime -n 1 --android --visualMetrics --video https://en.m.wikipedia.org/wiki/Barack_Obama
+$ docker run --privileged -v /dev/bus/usb:/dev/bus/usb -e START_ADB_SERVER=true --rm -v "$(pwd)":/browsertime-results sitespeedio/browsertime -n 1 --android --visualMetrics --video https://en.m.wikipedia.org/wiki/Barack_Obama
 </pre>
 
 ## Configuration
@@ -317,19 +228,19 @@ You can change latency by setting a Docker environment variable. Use REPLAY to t
 Default browser is Chrome:
 
 ```
-docker run --cap-add=NET_ADMIN --shm-size=1g --rm -v "$(pwd)":/browsertime -e REPLAY=true -e LATENCY=100 sitespeedio/browsertime:3.0.0 https://en.wikipedia.org/wiki/Barack_Obama
+docker run --cap-add=NET_ADMIN --rm -v "$(pwd)":/browsertime -e REPLAY=true -e LATENCY=100 sitespeedio/browsertime:4.0.0 https://en.wikipedia.org/wiki/Barack_Obama
 ```
 
 Use Firefox:
 
 ```
-docker run --cap-add=NET_ADMIN --shm-size=1g --rm -v "$(pwd)":/browsertime -e REPLAY=true -e LATENCY=100 sitespeedio/browsertime:3.0.0 -b firefox -n 11 https://en.wikipedia.org/wiki/Barack_Obama
+docker run --cap-add=NET_ADMIN --rm -v "$(pwd)":/browsertime -e REPLAY=true -e LATENCY=100 sitespeedio/browsertime:4.0.0 -b firefox -n 11 https://en.wikipedia.org/wiki/Barack_Obama
 ```
 
 And Chrome on your Android phone. This will only work on Linux because you need to be able to mount the usb port in Docker:
 
 ```
-docker run --privileged -v /dev/bus/usb:/dev/bus/usb -e START_ADB_SERVER=true --cap-add=NET_ADMIN --shm-size=1g --rm -v “$(pwd)“:/browsertime -e REPLAY=true -e LATENCY=100 sitespeedio/browsertime https://en.m.wikipedia.org/wiki/Barack_Obama --android --chrome.args ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I= -n 11 --chrome.args user-data-dir=/data/tmp/chrome
+docker run --privileged -v /dev/bus/usb:/dev/bus/usb -e START_ADB_SERVER=true --cap-add=NET_ADMIN --rm -v “$(pwd)“:/browsertime -e REPLAY=true -e LATENCY=100 sitespeedio/browsertime https://en.m.wikipedia.org/wiki/Barack_Obama --android --chrome.args ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I= -n 11 --chrome.args user-data-dir=/data/tmp/chrome
 ```
 
 ## Send metrics to Graphite
@@ -337,7 +248,7 @@ The easiest way to send metrics is to install [jq](https://stedolan.github.io/jq
 
 Here's an example on how you can pickup the median SpeedIndex from Browsertime and send it to your Graphite instance.
 <pre>
-echo "browsertime.your.key.SpeedIndex.median" $(cat /tmp/browsertime/browsertime.json | jq .statistics.visualMetrics.SpeedIndex.median) "`date +%s`" | nc -q0 my.graphite.com 2003
+echo "browsertime.your.key.SpeedIndex.median" $(cat /tmp/browsertime/browsertime.json | jq .[0].statistics.visualMetrics.SpeedIndex.median) "`date +%s`" | nc -q0 my.graphite.com 2003
 </pre>
 
 [travis-image]: https://img.shields.io/travis/sitespeedio/browsertime.svg?style=flat-square
